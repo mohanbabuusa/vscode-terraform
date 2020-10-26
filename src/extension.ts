@@ -111,7 +111,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<any> {
 	}
 
 	// export public API
-	return { clients, pathToBinary, rootModules };
+	return { getDocumentClient, pathToBinary, rootModules };
 }
 
 export function deactivate(): Promise<void[]> {
