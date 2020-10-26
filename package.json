@@ -177,7 +177,6 @@
   "dependencies": {
     "@types/async": "^3.2.3",
     "@types/semver": "^7.3.1",
-    "async": "^3.2.0",
     "del": "^5.1.0",
     "openpgp": "^4.10.7",
     "semver": "^7.3.2",

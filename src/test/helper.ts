@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { sleep } from '../utils';
 
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
@@ -39,10 +40,6 @@ async function activated() {
 		}
 	}
 	return _activatedPromise;
-}
-
-export async function sleep(ms: number): Promise<void> {
-	return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 export const getDocPath = (p: string): string => {

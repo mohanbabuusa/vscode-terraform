@@ -7,7 +7,6 @@ import {
 	ExecuteCommandParams,
 	ExecuteCommandRequest
 } from 'vscode-languageclient';
-import * as async from 'async';
 import ShortUniqueId from 'short-unique-id';
 
 import { LanguageServerInstaller } from './languageServerInstaller';
@@ -18,6 +17,7 @@ import {
 	prunedFolderNames,
 	sortedWorkspaceFolders
 } from './vscodeUtils';
+import { sleep } from './utils';
 
 interface terraformLanguageClient {
 	uuid: string,
@@ -132,7 +132,7 @@ async function startClients(folders = prunedFolderNames()) {
 			console.log(`Client for folder: ${folder} already started`);
 		}
 	}
-	return disposables
+	return disposables;
 }
 
 function newClient(cmd: string, location: string, uuid: string) {
@@ -249,29 +249,19 @@ async function rootModulesCommand(languageClient: terraformLanguageClient, docum
 	return execWorkspaceCommand(languageClient.client, requestParams);
 }
 
-async function rootModules(languageClient: terraformLanguageClient, documentUri: string) {
-	return new Promise<rootModuleResponse>((resolve, reject) => {
-		async.retry({ times: 2, interval: 100 }, (command) => {
-			rootModulesCommand(languageClient, documentUri).then((response) => {
-				if (response.doneLoading === false) {
-					return command(new Error('Unable to load root modules.'));
-				} else {
-					return command(null, response);
-				}
-			}).catch((err) => {
-				return command(err);
-			});
-		}, (err, result) => {
-			if (err) {
-				return reject(err);
-			}
-			if (result.rootModules.length === 0) {
-				return resolve({ rootModules: [], needsInit: true });
-			} else {
-				return resolve({ rootModules: result.rootModules, needsInit: false });
-			}
-		});	
-	});
+async function rootModules(languageClient: terraformLanguageClient, documentUri: string): Promise<rootModuleResponse> {
+	let doneLoading = false;
+	let rootModules: rootModule[];
+	for (let attempt = 0; attempt < 2 && !doneLoading; attempt++) {
+		const response = await rootModulesCommand(languageClient, documentUri);
+		await sleep(100);
+		doneLoading = response.doneLoading;
+		rootModules = response.rootModules;
+	}
+	if (!doneLoading) {
+		throw new Error(`Unable to load root modules for ${documentUri}`);
+	}
+	return { rootModules: rootModules, needsInit: rootModules.length === 0 };
 }
 
 function enabled(): boolean {
