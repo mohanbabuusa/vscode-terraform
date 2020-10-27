@@ -175,7 +175,6 @@
     "test": "npm run test-compile && node ./out/test/runTest.js"
   },
   "dependencies": {
-    "@types/async": "^3.2.3",
     "@types/semver": "^7.3.1",
     "del": "^5.1.0",
     "openpgp": "^4.10.7",

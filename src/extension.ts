@@ -20,7 +20,7 @@ import {
 import { sleep } from './utils';
 
 interface terraformLanguageClient {
-	uuid: string,
+	id: string,
 	client: LanguageClient
 }
 
@@ -124,10 +124,10 @@ async function startClients(folders = prunedFolderNames()) {
 	const disposables: vscode.Disposable[] = [];
 	for (const folder of folders) {
 		if (!clients.has(folder)) {
-			const uuid = shortUid.seq();
-			const client = newClient(command, folder, uuid);
+			const id = shortUid.seq();
+			const client = newClient(command, folder, id);
 			disposables.push(client.start());
-			clients.set(folder, { uuid, client });
+			clients.set(folder, { id, client });
 		} else {
 			console.log(`Client for folder: ${folder} already started`);
 		}
@@ -135,7 +135,7 @@ async function startClients(folders = prunedFolderNames()) {
 	return disposables;
 }
 
-function newClient(cmd: string, location: string, uuid: string) {
+function newClient(cmd: string, location: string, id: string) {
 	const binaryName = cmd.split('/').pop();
 	const channelName = `${binaryName}: ${location}`;
 	const f: vscode.WorkspaceFolder = getWorkspaceFolder(location);
@@ -147,11 +147,11 @@ function newClient(cmd: string, location: string, uuid: string) {
 	}
 	let initializationOptions = {};
 	if (rootModulePaths.length > 0) {
-		initializationOptions = { uuid, rootModulePaths };
+		initializationOptions = { id, rootModulePaths };
 	} else if (excludeModulePaths.length > 0) {
-		initializationOptions = { uuid, excludeModulePaths };
+		initializationOptions = { id, excludeModulePaths };
 	} else {
-		initializationOptions = { uuid }
+		initializationOptions = { id }
 	}
 
 	const setup = vscode.window.createOutputChannel(channelName);
@@ -245,7 +245,7 @@ interface rootModuleResponse  {
 }
 
 async function rootModulesCommand(languageClient: terraformLanguageClient, documentUri: string): Promise<any> {
-	const requestParams: ExecuteCommandParams = { command: `terraform-ls.rootmodules.${languageClient.uuid}`, arguments: [`uri=${documentUri}`] };
+	const requestParams: ExecuteCommandParams = { command: `terraform-ls.rootmodules.${languageClient.id}`, arguments: [`uri=${documentUri}`] };
 	return execWorkspaceCommand(languageClient.client, requestParams);
 }
 
